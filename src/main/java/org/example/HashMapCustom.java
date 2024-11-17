@@ -152,7 +152,6 @@ public class HashMapCustom<K, V> implements Map<K, V> {
         return false;
     }
 
-    // здесь хорошо бы чекать размер бакета и делать ресайзы, но это потом
     @Override
     public V put(K key, V value){ //ок
 
@@ -178,6 +177,8 @@ public class HashMapCustom<K, V> implements Map<K, V> {
                 size++;
             }
         }
+        if (++size > threshold)
+            resize();
         return current.value;
     }
 
