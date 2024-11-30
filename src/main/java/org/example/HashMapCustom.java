@@ -1,8 +1,10 @@
 package org.example;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
-public class HashMapCustom<K, V> implements Map<K, V> {
+public class HashMapCustom<K, V> implements Map<K, V>, Iterable<Map.Entry<K, V>> {
     private static final int DEFAULT_CAPACITY= 1 << 4;
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
     private Node < K, V> [] table;
@@ -23,6 +25,12 @@ public class HashMapCustom<K, V> implements Map<K, V> {
         this.table = new Node[capacity];
         this.size = 0;
         this.threshold = (int) (capacity * loadFactor);
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+        return new EntryIterator();
     }
 
 
@@ -177,7 +185,7 @@ public class HashMapCustom<K, V> implements Map<K, V> {
                 size++;
             }
         }
-        if (++size > threshold)
+        if (size > threshold)
             resize();
         return current.value;
     }
@@ -294,4 +302,53 @@ public class HashMapCustom<K, V> implements Map<K, V> {
         }
         return es;
     }
+
+    private class EntryIterator implements Iterator<Entry<K, V>> {
+        private Node<K, V>[] table;
+        private int index;
+        private Node<K, V> current;
+        private Node<K, V> lastReturned;
+
+        public EntryIterator() {
+            this.table = HashMapCustom.this.table;
+            this.index = 0;
+            this.current = null;
+            this.lastReturned = null;
+            advance(); // Инициализируем начальное состояние
+        }
+
+        private void advance() {
+            while (index < table.length && (current == null)) {
+                current = table[index++];
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public Node<K, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("The following element is missing!");
+            }
+            lastReturned = current;
+            current = current.next;
+            if (current == null) {
+                advance();
+            }
+            return lastReturned;
+        }
+
+        @Override
+        public void remove() {
+            if (lastReturned == null) {
+                throw new IllegalStateException();
+            }
+            HashMapCustom.this.remove(lastReturned.getKey());
+            lastReturned = null;
+        }
+    }
+
 }
